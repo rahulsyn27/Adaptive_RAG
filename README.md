@@ -107,24 +107,6 @@ Generation for INDEX is grounded: if chunks do not support an answer, the model 
 
 ---
 
-## Technology stack
-
-| Layer | Choice |
-| --- | --- |
-| Language | Python 3.11+ |
-| API | FastAPI |
-| UI | Streamlit |
-| Orchestration | LangGraph |
-| LLM | Groq through `langchain-groq` (`ChatGroq`) |
-| Embeddings | Local HuggingFace BGE (`BAAI/bge-small-en-v1.5`) |
-| Vectors | ChromaDB |
-| App state | SQLite + SQLAlchemy |
-| Web search | Tavily (LangChain-compatible tool) |
-| Settings | pydantic-settings |
-| Package manager | uv |
-| Tests | pytest |
-
----
 
 ## Installation
 
@@ -152,8 +134,6 @@ See `.env.example`. Required for full demos:
 - `EMBEDDING_MODEL`
 - `TOP_K`, `MAX_RETRIEVAL_ATTEMPTS`
 
-Never commit `.env`. Credentials are read only from the environment.
-
 ---
 
 ## ChromaDB
@@ -170,7 +150,7 @@ make api
 # health: GET http://localhost:8000/api/v1/health
 ```
 
-The first INDEX ingest downloads the local embedding model (no extra paid embedding API).
+The first INDEX ingest downloads the local embedding model.
 
 ---
 
@@ -226,68 +206,3 @@ After uploading a PDF:
 2. "What is retrieval augmented generation?" → `GENERAL`  
 3. "What are the latest developments in RAG?" → `SEARCH`
 
----
-
-## Evaluation
-
-Dataset: `evaluation/datasets/routing.json` (index, general, search, ambiguous, retrieval-failure).
-
-Metrics in `evaluation/metrics.py`:
-
-1. Routing accuracy  
-2. Retrieval success rate  
-3. Answer groundedness  
-4. Answer correctness  
-5. Average latency  
-6. Retry rate  
-
-```bash
-make eval
-# live API (optional):
-uv run python -m evaluation.evaluate --api-url http://localhost:8000
-```
-
----
-
-## Tests
-
-```bash
-make test
-```
-
-Unit tests mock Groq/Tavily. Integration tests exercise FastAPI and the compiled graph with fake LLM, retriever, and search backends.
-
----
-
-## Docker
-
-```bash
-cp .env.example .env
-docker compose up --build
-```
-
-- API: `http://localhost:8000`  
-- UI: `http://localhost:8501`
-
----
-
-## Observability
-
-Structured JSON logs include request id, session id, route, retrieval attempts, document counts, LLM/retrieval/total latency. API keys are not logged. Grader/router rationales are internal only.
-
----
-
-## Future improvements
-
-- Hybrid BM25 + dense retrieval  
-- Per-session Qdrant payload filters  
-- Streaming tokens over SSE  
-- Human-in-the-loop route overrides  
-- Stronger LLM-as-judge evaluation on answer faithfulness  
-- Multi-file citation grouping in the UI  
-
----
-
-## Project layout
-
-Application code lives under `app/` (API, RAG graph, ingestion, Qdrant, SQLite). The Streamlit client is `frontend/`. Evaluation assets are `evaluation/`.
