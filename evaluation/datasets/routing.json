@@ -1,0 +1,75 @@
+{
+  "name": "adaptive-rag-routing",
+  "examples": [
+    {
+      "id": "index-pdf",
+      "question": "What does the uploaded PDF say about transformers?",
+      "expected_route": "INDEX",
+      "category": "index"
+    },
+    {
+      "id": "index-paper",
+      "question": "Summarize the methodology section of the research paper I indexed.",
+      "expected_route": "INDEX",
+      "category": "index"
+    },
+    {
+      "id": "index-manual",
+      "question": "According to the product manual I uploaded, how do I reset the device?",
+      "expected_route": "INDEX",
+      "category": "index"
+    },
+    {
+      "id": "general-gd",
+      "question": "What is gradient descent?",
+      "expected_route": "GENERAL",
+      "category": "general"
+    },
+    {
+      "id": "general-embedding",
+      "question": "What is an embedding?",
+      "expected_route": "GENERAL",
+      "category": "general"
+    },
+    {
+      "id": "general-rag",
+      "question": "What is retrieval augmented generation?",
+      "expected_route": "GENERAL",
+      "category": "general"
+    },
+    {
+      "id": "search-langgraph",
+      "question": "What are the latest developments in LangGraph?",
+      "expected_route": "SEARCH",
+      "category": "search"
+    },
+    {
+      "id": "search-nvidia",
+      "question": "What is the stock price of NVIDIA today?",
+      "expected_route": "SEARCH",
+      "category": "search"
+    },
+    {
+      "id": "search-2026",
+      "question": "What are the latest embedding models in 2026?",
+      "expected_route": "SEARCH",
+      "category": "search"
+    },
+    {
+      "id": "ambiguous-transformers",
+      "question": "Tell me about transformers.",
+      "expected_route": "GENERAL",
+      "category": "ambiguous",
+      "notes": "Without referring to an uploaded file this is conceptual; INDEX only if the user points at documents."
+    },
+    {
+      "id": "retrieval-failure",
+      "question": "What does my uploaded report say about Martian tax law?",
+      "expected_route": "INDEX",
+      "category": "retrieval_failure",
+      "retried": true,
+      "grounded": false,
+      "correct": true
+    }
+  ]
+}
