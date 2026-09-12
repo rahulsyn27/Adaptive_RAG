@@ -206,3 +206,91 @@ After uploading a PDF:
 2. "What is retrieval augmented generation?" → `GENERAL`  
 3. "What are the latest developments in RAG?" → `SEARCH`
 
+---
+
+## Production deployment (VM + Docker Compose)
+
+This repository is ready for deployment on a Linux VM (EC2, DigitalOcean, Linode) using Docker Compose.
+
+### 1) Provision VM and install Docker
+
+Use Ubuntu 22.04+ and install:
+
+- Docker Engine
+- Docker Compose plugin (`docker compose`)
+
+### 2) Clone and configure environment
+
+```bash
+git clone https://github.com/rahulsyn27/Adaptive_RAG.git
+cd Adaptive_RAG
+cp .env.example .env
+```
+
+Set at least:
+
+- `GROQ_API_KEY`
+- `TAVILY_API_KEY`
+
+Optional tuning:
+
+- `GROQ_MODEL`
+- `EMBEDDING_MODEL`
+- `TOP_K`
+- `MAX_RETRIEVAL_ATTEMPTS`
+
+### 3) Start services
+
+```bash
+docker compose up -d --build
+```
+
+Default exposed ports:
+
+- `8000` → FastAPI
+- `8501` → Streamlit
+
+### 4) Add HTTPS reverse proxy (recommended: Caddy)
+
+Set your public domain in `.env`:
+
+```bash
+echo "DOMAIN=your-domain.com" >> .env
+```
+
+Start with Caddy proxy overlay:
+
+```bash
+docker compose -f docker-compose.yml -f deploy/docker-compose.caddy.yml up -d --build
+```
+
+Routing:
+
+- `/api`, `/docs`, `/redoc`, `/openapi.json` → API (`api:8000`)
+- `/` → UI (`ui:8501`)
+
+Nginx users can use `deploy/nginx.conf` as a base config.
+
+### 5) Persistence and operations
+
+- Keep Docker volume `app_data` (SQLite + Chroma data)
+- Service restart policy: `unless-stopped` (configured in Caddy overlay)
+- Logs:
+
+```bash
+docker compose logs -f
+```
+
+Backup `app_data` volume (example):
+
+```bash
+docker run --rm -v app_data:/volume -v "$PWD:/backup" alpine \
+  sh -c 'tar czf /backup/app_data_backup_$(date +%F).tar.gz -C /volume .'
+```
+
+Restore example:
+
+```bash
+docker run --rm -v app_data:/volume -v "$PWD:/backup" alpine \
+  sh -c 'cd /volume && tar xzf /backup/app_data_backup_YYYY-MM-DD.tar.gz'
+```
