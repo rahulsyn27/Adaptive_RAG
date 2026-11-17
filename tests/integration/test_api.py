@@ -108,6 +108,7 @@ def test_document_upload_and_list(client: TestClient, tmp_path: Path) -> None:
             filename=kwargs["filename"],
             description=kwargs["description"],
             collection_name="adaptive_rag",
+            session_id=kwargs.get("session_id"),
         )
         return "doc-99", 3
 
@@ -118,11 +119,11 @@ def test_document_upload_and_list(client: TestClient, tmp_path: Path) -> None:
             response = client.post(
                 "/api/v1/documents/upload",
                 files={"file": ("notes.txt", handle, "text/plain")},
-                data={"description": "test notes"},
+                data={"description": "test notes", "session_id": "test-session"},
             )
     assert response.status_code == 201
     assert response.json()["chunk_count"] == 3
-    listed = client.get("/api/v1/documents")
+    listed = client.get("/api/v1/documents?session_id=test-session")
     assert listed.status_code == 200
     assert listed.json()["documents"][0]["filename"] == "notes.txt"
 
@@ -131,5 +132,6 @@ def test_rejected_extension(client: TestClient) -> None:
     response = client.post(
         "/api/v1/documents/upload",
         files={"file": ("payload.exe", b"xx", "application/octet-stream")},
+        data={"session_id": "test-session"},
     )
     assert response.status_code == 400

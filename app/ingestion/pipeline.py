@@ -33,6 +33,7 @@ def ingest_file(
     db: Session,
     settings: Settings | None = None,
     retriever: DocumentRetriever | None = None,
+    session_id: str | None = None,
 ) -> tuple[str, int]:
     """Persist document metadata in SQLite and chunks in ChromaDB."""
     cfg = settings or get_settings()
@@ -45,6 +46,7 @@ def ingest_file(
         document_id=document_id,
         filename=filename,
         description=description,
+        session_id=session_id,
     )
     store = retriever or get_retriever(cfg)
     count = store.upsert_documents(enriched)
@@ -54,9 +56,10 @@ def ingest_file(
         filename=filename,
         description=description,
         collection_name=cfg.chroma_collection,
+        session_id=session_id,
     )
     logger.info(
         "ingested_document",
-        extra={"document_id": document_id, "doc_filename": filename, "chunk_count": count},
+        extra={"document_id": document_id, "doc_filename": filename, "chunk_count": count, "session_id": session_id},
     )
     return document_id, count

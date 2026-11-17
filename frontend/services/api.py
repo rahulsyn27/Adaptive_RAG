@@ -28,11 +28,11 @@ class BackendClient:
             response.raise_for_status()
             return response.json()
 
-    def upload(self, path: Path, description: str = "") -> dict[str, Any]:
+    def upload(self, path: Path, description: str = "", session_id: str = "") -> dict[str, Any]:
         with httpx.Client(timeout=self.timeout) as client:
             with path.open("rb") as handle:
                 files = {"file": (path.name, handle)}
-                data = {"description": description} if description else {}
+                data = {"description": description, "session_id": session_id}
                 response = client.post(
                     f"{self.base_url}/api/v1/documents/upload",
                     files=files,
@@ -41,8 +41,15 @@ class BackendClient:
             response.raise_for_status()
             return response.json()
 
-    def list_documents(self) -> dict[str, Any]:
+    def list_documents(self, session_id: str = "") -> dict[str, Any]:
         with httpx.Client(timeout=15.0) as client:
-            response = client.get(f"{self.base_url}/api/v1/documents")
+            params = {"session_id": session_id} if session_id else {}
+            response = client.get(f"{self.base_url}/api/v1/documents", params=params)
+            response.raise_for_status()
+            return response.json()
+
+    def list_sessions_with_documents(self) -> list[dict[str, Any]]:
+        with httpx.Client(timeout=15.0) as client:
+            response = client.get(f"{self.base_url}/api/v1/documents/sessions")
             response.raise_for_status()
             return response.json()

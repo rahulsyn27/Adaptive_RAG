@@ -55,4 +55,5 @@ class Document(Base):
     filename: Mapped[str] = mapped_column(String(512))
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     collection_name: Mapped[str] = mapped_column(String(128))
+    session_id: Mapped[str] = mapped_column(String(128), index=True, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())

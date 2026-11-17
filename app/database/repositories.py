@@ -71,6 +71,7 @@ def create_document_metadata(
     filename: str,
     description: str | None,
     collection_name: str,
+    session_id: str | None = None,
 ) -> Document:
     try:
         document = Document(
@@ -78,6 +79,7 @@ def create_document_metadata(
             filename=filename,
             description=description,
             collection_name=collection_name,
+            session_id=session_id,
         )
         db.add(document)
         db.flush()
@@ -86,10 +88,52 @@ def create_document_metadata(
         raise DatabaseError("Unable to store document metadata.") from exc
 
 
-def list_documents(db: Session) -> list[Document]:
+def list_documents(db: Session, session_id: str | None = None) -> list[Document]:
     stmt = select(Document).order_by(Document.created_at.desc())
+    if session_id:
+        stmt = stmt.where(Document.session_id == session_id)
     return list(db.scalars(stmt))
+
+
+def list_sessions_with_documents(db: Session) -> list[dict]:
+    """Get all sessions that have documents, with document info."""
+    from sqlalchemy import func
+    # Get all docs with session_id, ordered by created_at desc
+    stmt = (
+        select(Document.session_id, Document.filename, func.max(Document.created_at))
+        .where(Document.session_id.isnot(None))
+        .group_by(Document.session_id, Document.filename)
+        .order_by(func.max(Document.created_at).desc())
+    )
+    rows = db.execute(stmt).all()
+
+    # Group by session_id in Python (works with any DB)
+    sessions: dict[str, dict] = {}
+    for session_id, filename, _ in rows:
+        if session_id not in sessions:
+            sessions[session_id] = {"session_id": session_id, "filenames": [], "count": 0}
+        sessions[session_id]["filenames"].append(filename)
+        sessions[session_id]["count"] += 1
+
+    # Sort by count desc
+    return sorted(sessions.values(), key=lambda x: x["count"], reverse=True)
 
 
 def get_document(db: Session, document_id: str) -> Document | None:
     return db.get(Document, document_id)
+
+
+def delete_document(db: Session, document_id: str) -> bool:
+    doc = db.get(Document, document_id)
+    if doc is None:
+        return False
+    db.delete(doc)
+    return True
+
+
+def delete_session_documents(db: Session, session_id: str) -> int:
+    stmt = select(Document).where(Document.session_id == session_id)
+    docs = list(db.scalars(stmt))
+    for doc in docs:
+        db.delete(doc)
+    return len(docs)

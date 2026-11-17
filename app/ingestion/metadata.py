@@ -11,6 +11,7 @@ def attach_chunk_metadata(
     document_id: str,
     filename: str,
     description: str | None,
+    session_id: str | None = None,
 ) -> list[Document]:
     enriched: list[Document] = []
     for index, chunk in enumerate(chunks):
@@ -30,6 +31,7 @@ def attach_chunk_metadata(
                 "page": page,
                 "source": metadata.get("source") or filename,
                 "description": description or "",
+                "session_id": session_id or "",
             }
         )
         enriched.append(Document(page_content=chunk.page_content, metadata=metadata))

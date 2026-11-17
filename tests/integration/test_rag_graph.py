@@ -8,13 +8,13 @@ from sqlalchemy.pool import StaticPool
 from app.core.constants import Route
 from app.database.models import Base
 from app.database.repositories import add_message, create_session
-from app.rag.graph import build_graph
+from app.rag.graph import build_simple_graph as build_graph
 from app.schemas.response import RetrievedChunk, WebResult
 from tests.conftest import FakeChatModel
 
 
 class FakeRetriever:
-    def similarity_search(self, query: str, top_k: int | None = None, document_id: str | None = None):
+    def similarity_search(self, query: str, top_k: int | None = None, document_id: str | None = None, session_id: str | None = None):
         return [
             Document(
                 page_content="The paper states that transformer efficiency improves with sparse attention.",

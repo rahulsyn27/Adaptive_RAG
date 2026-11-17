@@ -69,13 +69,19 @@ class DocumentRetriever:
         *,
         top_k: int | None = None,
         document_id: str | None = None,
+        session_id: str | None = None,
     ) -> list[Document]:
         """Return the nearest chunks as LangChain Documents."""
         ensure_collection(self._client, self.settings)
         collection = self._get_collection()
         k = top_k or self.settings.top_k
 
-        where = {"document_id": document_id} if document_id else None
+        where = {}
+        if document_id:
+            where["document_id"] = document_id
+        if session_id:
+            where["session_id"] = session_id
+        where = where or None
 
         try:
             vector = self._embeddings.embed_query(query)

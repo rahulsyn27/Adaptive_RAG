@@ -1,14 +1,13 @@
 """Grading node and retry policy tests."""
 
 from app.config.settings import Settings
-from app.rag.nodes.grading import make_grading_node
-from app.rag.policies import after_grade
+from app.rag.grading import make_grader, after_grade
 from app.schemas.response import RetrievedChunk
 from tests.conftest import FakeChatModel
 
 
 def test_grader_marks_relevant() -> None:
-    node = make_grading_node(FakeChatModel(relevant=True))
+    node = make_grader(FakeChatModel(relevant=True))
     result = node(
         {
             "query": "What does the paper say?",
@@ -20,7 +19,7 @@ def test_grader_marks_relevant() -> None:
 
 
 def test_grader_empty_documents_not_relevant() -> None:
-    node = make_grading_node(FakeChatModel(relevant=True))
+    node = make_grader(FakeChatModel(relevant=True))
     result = node({"query": "missing", "documents": []})
     assert result["relevant"] is False
     assert result["relevance_score"] == 0.0

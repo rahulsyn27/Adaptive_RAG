@@ -45,14 +45,14 @@ def render_sidebar(client: BackendClient) -> str:
         tmp = Path("/tmp") / uploaded.name
         tmp.write_bytes(uploaded.getvalue())
         try:
-            result = client.upload(tmp, description=description)
+            result = client.upload(tmp, description=description, session_id=session_id)
             st.sidebar.success(f"Indexed {result['document']['filename']} ({result['chunk_count']} chunks)")
         except Exception as exc:
             st.sidebar.error(f"Upload failed: {exc}")
 
     st.sidebar.subheader("Indexed documents")
     try:
-        listing: dict[str, Any] = client.list_documents()
+        listing: dict[str, Any] = client.list_documents(session_id=session_id)
         docs = listing.get("documents") or []
         if not docs:
             st.sidebar.caption("No documents yet.")
@@ -60,5 +60,17 @@ def render_sidebar(client: BackendClient) -> str:
             st.sidebar.markdown(f"- `{item['filename']}`")
     except Exception:
         st.sidebar.caption("Could not load document list.")
+
+    st.sidebar.subheader("Sessions with documents")
+    try:
+        sessions = client.list_sessions_with_documents()
+        if not sessions:
+            st.sidebar.caption("No sessions with documents yet.")
+        for item in sessions:
+            with st.sidebar.expander(f"📁 {item['session_id']} ({item['count']} docs)"):
+                for filename in item["filenames"]:
+                    st.markdown(f"- `{filename}`")
+    except Exception:
+        st.sidebar.caption("Could not load sessions.")
 
     return session_id

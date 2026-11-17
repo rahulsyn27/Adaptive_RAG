@@ -2,12 +2,12 @@
 
 from langchain_core.documents import Document
 
-from app.rag.nodes.retrieval import make_retrieval_node
+from app.rag.retrieval import make_retrieval
 from app.schemas.response import RetrievedChunk
 
 
 class _FakeStore:
-    def similarity_search(self, query: str, top_k: int | None = None, document_id: str | None = None) -> list[Document]:
+    def similarity_search(self, query: str, top_k: int | None = None, document_id: str | None = None, session_id: str | None = None) -> list[Document]:
         assert query
         return [
             Document(
@@ -32,7 +32,7 @@ class _FakeStore:
 
 
 def test_retrieval_increments_attempts_and_stores_chunks() -> None:
-    node = make_retrieval_node(_FakeStore())  # type: ignore[arg-type]
+    node = make_retrieval(_FakeStore())  # type: ignore[arg-type]
     result = node({"query": "transformers", "session_id": "s", "retrieval_attempts": 0})
     assert result["retrieval_attempts"] == 1
     assert len(result["documents"]) == 1
